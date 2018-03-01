@@ -843,6 +843,7 @@ namespace Microsoft.PSharp
         private async Task HandleEvent(Event e)
         {
             base.Info.CurrentActionCalledTransitionStatement = false;
+            var originalState = this.CurrentStateName; 
 
             while (true)
             {
@@ -864,6 +865,10 @@ namespace Microsoft.PSharp
 
                         return;
                     }
+
+                    // Notify users that we are going to fail this machine due to an unhandled
+                    // event.
+                    this.OnUnhandledEvent(originalState, e);
 
                     // If the event cannot be handled then report an error and exit.
                     this.Assert(false, $"Machine '{base.Id}' received event " +
@@ -1814,6 +1819,16 @@ namespace Microsoft.PSharp
         protected virtual bool OnException(string methodName, Exception ex)
         {
             return false;
+        }
+
+        /// <summary>
+        /// User callback when a machine faults due to an unhandled event.
+        /// </summary>
+        /// <param name="stateName">The original state of the machine at the time of handling the
+        /// event.</param>
+        /// <param name="e">The event that was not handled by the machine.</param>
+        protected virtual void OnUnhandledEvent(string stateName, Event e)
+        {
         }
 
         #endregion
